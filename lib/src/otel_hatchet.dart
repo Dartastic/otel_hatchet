@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_hatchet_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_hatchet';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class HatchetResult {
+  /// Creates a result.
   const HatchetResult({
     this.tenantId,
     this.workflowName,
@@ -57,8 +58,13 @@ class HatchetResult {
   final int? statusCode;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class HatchetCallResult<T> {
+  /// Creates a call result.
   const HatchetCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final HatchetResult? result;
 }
@@ -83,56 +89,56 @@ Future<T> tracedHatchet<T>({
   final span = _tracer().startSpan(
     'hatchet $operation',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
     if (r.result != null) {
       final extras = <Attribute<Object>>[];
       if (r.result!.tenantId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'hatchet.tenant.id',
           r.result!.tenantId!,
         ));
       }
       if (r.result!.workflowName != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'hatchet.workflow.name',
           r.result!.workflowName!,
         ));
       }
       if (r.result!.workflowRunId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'hatchet.workflow_run.id',
           r.result!.workflowRunId!,
         ));
       }
       if (r.result!.stepRunId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'hatchet.step_run.id',
           r.result!.stepRunId!,
         ));
       }
       if (r.result!.stepName != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'hatchet.step.name',
           r.result!.stepName!,
         ));
       }
       if (r.result!.workerId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'hatchet.worker.id',
           r.result!.workerId!,
         ));
       }
       if (r.result!.queueName != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'hatchet.queue.name',
           r.result!.queueName!,
         ));
       }
       if (r.result!.runStatus != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'hatchet.run.status',
           r.result!.runStatus!,
         ));
@@ -141,31 +147,31 @@ Future<T> tracedHatchet<T>({
         }
       }
       if (r.result!.retryCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'hatchet.retry.count',
           r.result!.retryCount!,
         ));
       }
       if (r.result!.priority != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'hatchet.priority',
           r.result!.priority!,
         ));
       }
       if (r.result!.concurrencyKey != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'hatchet.concurrency.key',
           r.result!.concurrencyKey!,
         ));
       }
       if (r.result!.durationMs != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'hatchet.duration_ms',
           r.result!.durationMs!,
         ));
       }
       if (r.result!.statusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'http.response.status_code',
           r.result!.statusCode!,
         ));
@@ -176,13 +182,13 @@ Future<T> tracedHatchet<T>({
           );
         }
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
